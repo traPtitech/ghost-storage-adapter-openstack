@@ -1,0 +1,29 @@
+{
+  "name": "ghost-storage-adapter-openstack",
+  "version": "1.0.0",
+  "description": "An openstack storage adapter for Ghost blogging platform.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/traPtitech/ghost-storage-adapter-openstack.git"
+  },
+  "keywords": [
+    "adapter",
+    "ghost",
+    "openstack",
+    "storage"
+  ],
+  "author": "sapphi-red <green@sapphi.red> (https://github.com/sapphi-red)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/traPtitech/ghost-storage-adapter-openstack/issues"
+  },
+  "homepage": "https://github.com/traPtitech/ghost-storage-adapter-openstack#readme",
+  "dependencies": {
+    "ghost-storage-base": "0.0.3",
+    "pkgcloud": "^2.2.0"
+  }
+}
