@@ -24,6 +24,6 @@
   "homepage": "https://github.com/traPtitech/ghost-storage-adapter-openstack#readme",
   "dependencies": {
     "ghost-storage-base": "0.0.3",
-    "pkgcloud": "^2.2.0"
+    "pkgcloud": "github:louis-sanna/pkgcloud#09278bb7eb7c50dbb2b2eb196664f0d58b29adb6"
   }
 }
