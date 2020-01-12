@@ -7,8 +7,8 @@ Using patched pkgcloud due to [#673](https://github.com/pkgcloud/pkgcloud/pull/6
 ## Installation
 ```sh
 npm i traPtitech/ghost-storage-adapter-openstack
-mkdir -p ./content/adapters/openstack
-cp -r ./node_modules/ghost-storage-adapter-openstack ./content/adapters/openstack
+mkdir -p ./content/adapters/storage
+cp -r ./node_modules/ghost-storage-adapter-openstack ./content/adapters/storage/openstack
 ```
 
 ## Configuration
