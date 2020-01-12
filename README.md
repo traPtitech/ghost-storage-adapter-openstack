@@ -2,12 +2,19 @@
 
 An openstack storage adapter for Ghost blogging platform.
 
-## configuration
+## Installation
+```sh
+npm i traPtitech/ghost-storage-adapter-openstack
+mkdir -p ./content/adapters/openstack
+cp -r ./node_modules/ghost-storage-adapter-openstack ./content/adapters/openstack
+```
+
+## Configuration
 ```json
 {
   "storage": {
-    "active": "ghost-storage-adapter-openstack",
-    "ghost-storage-adapter-openstack": {
+    "active": "openstack",
+    "openstack": {
       "username": "",
       "password": "",
       "authUrl": "",
