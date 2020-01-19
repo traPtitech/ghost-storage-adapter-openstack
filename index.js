@@ -27,6 +27,8 @@ class OpenstackAdapter extends BaseAdapter {
         directory = this.getTargetDir()
       }
 
+      console.log('exists', directory, filename)
+
       this.client.getFile(this.containerName, join(directory, filename), (err, file) => {
         if (err) {
           resolve(false)
@@ -45,10 +47,7 @@ class OpenstackAdapter extends BaseAdapter {
         }
 
         const fileName = await this.getUniqueFileName(image, directory)
-
         const readStream = createReadStream(image.path)
-
-        console.log(fileName)
 
         const writeStream = this.client.upload({
           container: this.containerName,
@@ -69,7 +68,7 @@ class OpenstackAdapter extends BaseAdapter {
 
   serve() {
     return (req, res, next) => {
-      console.log(req.path)
+      console.log('serve', req.path)
 
       this.client.download({
         container: this.containerName,
@@ -87,6 +86,8 @@ class OpenstackAdapter extends BaseAdapter {
         directory = this.getTargetDir()
       }
 
+      console.log('delete', directory, filename)
+
       this.client.removeFile(this.containerName, join(directory, filename), err => {
         if (err) {
           resolve(false)
@@ -101,6 +102,8 @@ class OpenstackAdapter extends BaseAdapter {
     return new Promise((resolve, reject) => {
       // remove trailing slashes
       let path = (options.path || '').replace(/\/$|\\$/, '')
+
+      console.log('read', options, path)
 
       // check if path is stored in openstack handled by us
       if (!path.startsWith(this.serverUrl)) {
