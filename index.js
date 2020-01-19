@@ -1,6 +1,7 @@
 const BaseAdapter = require('ghost-storage-base')
 const pkgcloud = require('pkgcloud')
 const { join } = require('path')
+const { createReadStream } = require('fs')
 
 class OpenstackAdapter extends BaseAdapter {
   constructor(config = {}) {
@@ -44,18 +45,21 @@ class OpenstackAdapter extends BaseAdapter {
 
         const fileName = await this.getUniqueFileName(image, directory)
 
+        const readStream = createReadStream(image.path)
+
         console.log(fileName)
 
-        const stream = this.client.upload({
+        const writeStream = this.client.upload({
           container: this.containerName,
           remote: fileName
         })
-        stream.on('error', err => {
+        writeStream.on('error', err => {
           reject(err)
         })
-        stream.on('success', file => {
+        writeStream.on('success', file => {
           resolve(`${this.serverUrl}/${fileName}`)
         })
+        readStream.pipe(writeStream)
       } catch(e) {
         reject(e)
       }
@@ -113,7 +117,6 @@ class OpenstackAdapter extends BaseAdapter {
           reject(err)
           return
         }
-        resolve(result)
       })
     })
   }
