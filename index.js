@@ -21,6 +21,10 @@ class OpenstackAdapter extends BaseAdapter {
 
   exists(filename, directory) {
     return new Promise(resolve => {
+      if (!directory) {
+        directory = this.getTargetDir()
+      }
+
       this.client.getFile(this.containerName, join(directory, filename), (err, file) => {
         if (err) {
           resolve(false)
@@ -65,6 +69,10 @@ class OpenstackAdapter extends BaseAdapter {
 
   delete(filename, directory) {
     return new Promise(resolve => {
+      if (!directory) {
+        directory = this.getTargetDir()
+      }
+
       this.client.removeFile(this.containerName, join(directory, filename), err => {
         if (err) {
           resolve(false)
