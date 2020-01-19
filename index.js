@@ -95,13 +95,7 @@ class OpenstackAdapter extends BaseAdapter {
   read(options = {}) {
     return new Promise((resolve, reject) => {
       // remove trailing slashes
-      let path = (options.path || '').replace(/\/$|\\$/, '')
-
-      // check if path is stored in openstack handled by us
-      if (!path.startsWith(this.serverUrl)) {
-        reject(new Error(`${path} is not stored in openstack`))
-      }
-      path = path.substring(this.serverUrl.length)
+      const path = (options.path || '').replace(/\/$|\\$/, '')
 
       this.client.download({
         container: this.containerName,
