@@ -27,8 +27,6 @@ class OpenstackAdapter extends BaseAdapter {
         directory = this.getTargetDir()
       }
 
-      console.log('exists', directory, filename)
-
       this.client.getFile(this.containerName, join(directory, filename), (err, file) => {
         if (err) {
           resolve(false)
@@ -49,8 +47,6 @@ class OpenstackAdapter extends BaseAdapter {
         const fileName = await this.getUniqueFileName(image, directory)
         const readStream = createReadStream(image.path)
 
-        console.log('save', fileName)
-
         const writeStream = this.client.upload({
           container: this.containerName,
           remote: fileName
@@ -70,8 +66,6 @@ class OpenstackAdapter extends BaseAdapter {
 
   serve() {
     return (req, res, next) => {
-      console.log('serve', req.path)
-
       this.client.download({
         container: this.containerName,
         remote: req.path.replace(/^\//, '') // remove leading slash
@@ -88,8 +82,6 @@ class OpenstackAdapter extends BaseAdapter {
         directory = this.getTargetDir()
       }
 
-      console.log('delete', directory, filename)
-
       this.client.removeFile(this.containerName, join(directory, filename), err => {
         if (err) {
           resolve(false)
@@ -105,15 +97,11 @@ class OpenstackAdapter extends BaseAdapter {
       // remove trailing slashes
       let path = (options.path || '').replace(/\/$|\\$/, '')
 
-      console.log('read', options, path)
-
       // check if path is stored in openstack handled by us
       if (!path.startsWith(this.serverUrl)) {
         reject(new Error(`${path} is not stored in openstack`))
       }
       path = path.substring(this.serverUrl.length)
-
-      console.log(path)
 
       this.client.download({
         container: this.containerName,
