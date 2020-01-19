@@ -36,13 +36,13 @@ class OpenstackAdapter extends BaseAdapter {
   }
 
   save(image, directory) {
-    return new Promise((resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
       try {
         if (!directory) {
           directory = this.getTargetDir()
         }
 
-        const fileName = this.getUniqueFileName(image, directory)
+        const fileName = await this.getUniqueFileName(image, directory)
 
         console.log(fileName)
 
