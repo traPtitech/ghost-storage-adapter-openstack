@@ -49,6 +49,8 @@ class OpenstackAdapter extends BaseAdapter {
         const fileName = await this.getUniqueFileName(image, directory)
         const readStream = createReadStream(image.path)
 
+        console.log('save', fileName)
+
         const writeStream = this.client.upload({
           container: this.containerName,
           remote: fileName
