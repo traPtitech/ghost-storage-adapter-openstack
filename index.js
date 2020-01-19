@@ -2,6 +2,7 @@ const BaseAdapter = require('ghost-storage-base')
 const pkgcloud = require('pkgcloud')
 const { join } = require('path')
 const { createReadStream } = require('fs')
+const concatStream = require('concat-stream')
 
 class OpenstackAdapter extends BaseAdapter {
   constructor(config = {}) {
@@ -117,7 +118,11 @@ class OpenstackAdapter extends BaseAdapter {
           reject(err)
           return
         }
-      })
+      }).on('error', err => {
+        reject(err)
+      }).pipe(concatStream(file => {
+        resolve(file)
+      }))
     })
   }
 }
