@@ -72,7 +72,7 @@ class OpenstackAdapter extends BaseAdapter {
 
       this.client.download({
         container: this.containerName,
-        remote: req.path
+        remote: req.path.replace(/^\//, '') // remove leading slash
       }).on('error', err => {
         res.status(404)
         next(err)
