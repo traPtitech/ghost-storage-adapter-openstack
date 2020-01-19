@@ -17,13 +17,13 @@ cp -r ./node_modules/ghost-storage-adapter-openstack ./content/adapters/storage/
   "storage": {
     "active": "openstack",
     "openstack": {
-      "username": "",
-      "password": "",
-      "authUrl": "",
-      "region": "",
-      "tenantId": "",
-      "container": "",
-      "serverUrl": ""
+      "username": "your-username",
+      "password": "your-password",
+      "authUrl": "your-auth-url (without /v2.0/)",
+      "region": "your-region",
+      "tenantId": "your-tenant-id",
+      "container": "your-container-name",
+      "serverUrl": "your-page-domain/content/images"
     }
   }
 }
