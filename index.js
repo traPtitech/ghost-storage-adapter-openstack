@@ -44,6 +44,8 @@ class OpenstackAdapter extends BaseAdapter {
 
         const fileName = this.getUniqueFileName(image, directory)
 
+        console.log(fileName)
+
         const stream = this.client.upload({
           container: this.containerName,
           remote: fileName
@@ -61,7 +63,9 @@ class OpenstackAdapter extends BaseAdapter {
   }
 
   serve() {
-    return (req, res, next) =>
+    return (req, res, next) => {
+      console.log(req.path)
+
       this.client.download({
         container: this.containerName,
         remote: req.path
@@ -69,6 +73,7 @@ class OpenstackAdapter extends BaseAdapter {
         res.status(404)
         next(err)
       }).pipe(res)
+    }
   }
 
   delete(filename, directory) {
@@ -97,6 +102,8 @@ class OpenstackAdapter extends BaseAdapter {
         reject(new Error(`${path} is not stored in openstack`))
       }
       path = path.substring(this.serverUrl.length)
+
+      console.log(path)
 
       this.client.download({
         container: this.containerName,
