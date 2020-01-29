@@ -58,6 +58,9 @@ class OpenstackAdapter extends BaseAdapter {
           resolve(`${this.serverUrl}/${fileName}`)
         })
         readStream.pipe(writeStream)
+        readStream.on('error', err => {
+          writeStream.destroy(err)
+        })
       } catch(e) {
         reject(e)
       }
