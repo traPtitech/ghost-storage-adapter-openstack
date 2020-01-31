@@ -69,6 +69,7 @@ class OpenstackAdapter extends BaseAdapter {
 
   serve() {
     return (req, res, next) => {
+      res.set('Cache-Control', 'public, max-age=864000')
       this.client.download({
         container: this.containerName,
         remote: req.path.replace(/^\//, '') // remove leading slash
