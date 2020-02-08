@@ -72,7 +72,7 @@ class OpenstackAdapter extends BaseAdapter {
       res.set('Cache-Control', 'public, max-age=864000')
       this.client.download({
         container: this.containerName,
-        remote: req.path.replace(/^\//, '') // remove leading slash
+        remote: decodeURIComponent(req.path).replace(/^\//, '') // remove leading slash
       }).on('error', err => {
         res.status(404)
         next(err)
