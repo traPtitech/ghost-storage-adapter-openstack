@@ -75,20 +75,22 @@ class OpenstackAdapter extends BaseAdapter {
 
       const filePath = decodeURIComponent(req.path).replace(/^\//, '') // remove leading slash
       const isCached = this.cache.checkExistence(filePath)
-      if (!isCached) {
-        try {
-          await this.cache.download(filePath)
-        } catch (err) {
+      if (isCached) {
+        this.cache.readStream(filePath).on('error', err => {
           res.status(404)
           next(err)
-          return
-        }
+        }).pipe(res)
+        return
       }
 
-      this.cache.getStream(filePath).on('error', err => {
+      const [readStream, writeStream] = await Promise.all([
+        this.cache.downloadStream(filePath),
+        this.cache.writeStream(filePath)
+      ])
+      readStream.on('error', err => {
         res.status(404)
         next(err)
-      }).pipe(res)
+      }).pipe(res).pipe(writeStream)
     }
   }
 
@@ -126,7 +128,7 @@ class OpenstackAdapter extends BaseAdapter {
         return Promise.reject(err)
       }
     }
-    return this.cache.getFile(filePath)
+    return this.cache.read(filePath)
   }
 }
 

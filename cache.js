@@ -9,12 +9,18 @@ module.exports = class Cache {
   }
 
   // only use when file exists
-  getStream(filePath) {
+  readStream(filePath) {
     return fs.createReadStream(this.getCachePath(filePath))
   }
 
-  get(filePath) {
+  read(filePath) {
     return fs.readFile(this.getCachePath(filePath))
+  }
+
+  async writeStream(filePath) {
+    const absoluteFilePath = this.getCachePath(filePath)
+    await fs.ensureDir(path.dirname(absoluteFilePath))
+    return fs.createWriteStream(absoluteFilePath)
   }
 
   checkExistence(filePath) {
@@ -24,6 +30,15 @@ module.exports = class Cache {
     } catch (e) {
       return false
     }
+  }
+
+  async downloadStream(filePath) {
+    const absoluteFilePath = this.getCachePath(filePath)
+    await fs.ensureDir(path.dirname(absoluteFilePath))
+    return this.client.download({
+      container: this.containerName,
+      remote: filePath
+    })
   }
 
   async download(filePath) {
