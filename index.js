@@ -3,6 +3,7 @@ const pkgcloud = require('pkgcloud')
 const { join } = require('path')
 const { createReadStream } = require('fs')
 const concatStream = require('concat-stream')
+const Cache = require('./cache')
 
 class OpenstackAdapter extends BaseAdapter {
   constructor(config = {}) {
@@ -19,6 +20,7 @@ class OpenstackAdapter extends BaseAdapter {
       tenantId: config.tenantId,
       container: config.container
     })
+    this.cache = new Cache(config.cacheFolder, this.client, this.containerName)
   }
 
   exists(filename, directory) {
@@ -69,53 +71,64 @@ class OpenstackAdapter extends BaseAdapter {
   }
 
   serve() {
-    return (req, res, next) => {
+    return async (req, res, next) => {
       res.set('Cache-Control', 'public, max-age=864000')
-      this.client.download({
-        container: this.containerName,
-        remote: decodeURIComponent(req.path).replace(/^\//, '') // remove leading slash
-      }).on('error', err => {
+
+      const filePath = decodeURIComponent(req.path).replace(/^\//, '') // remove leading slash
+      const isCached = this.cache.checkExistence(filePath)
+      if (!isCached) {
+        try {
+          await this.cache.download(filePath)
+        } catch (err) {
+          res.status(404)
+          next(err)
+          return
+        }
+      }
+
+      this.cache.getStream(filePath).on('error', err => {
         res.status(404)
         next(err)
       }).pipe(res)
     }
   }
 
-  delete(filename, directory) {
-    return new Promise(resolve => {
+  async delete(filename, directory) {
+    try {
       if (!directory) {
         directory = this.getTargetDir()
       }
 
-      this.client.removeFile(this.containerName, join(directory, filename), err => {
-        if (err) {
-          resolve(false)
-          return
-        }
-        resolve(true)
+      const filePath = join(directory, filename)
+      await this.cache.delete(filePath)
+
+      await new Promise((resolve, reject) => {
+        this.client.removeFile(this.containerName, filePath, err => {
+          if (err) {
+            reject(err)
+            return
+          }
+          resolve()
+        })
       })
-    })
+      return true
+    } catch (err) {
+      return false
+    }
   }
 
-  read(options = {}) {
-    return new Promise((resolve, reject) => {
-      // remove trailing slashes
-      const path = (options.path || '').replace(/\/$|\\$/, '')
-
-      this.client.download({
-        container: this.containerName,
-        remote: path
-      }, (err, result) => {
-        if (err) {
-          reject(err)
-          return
-        }
-      }).on('error', err => {
+  async read(options = {}) {
+    const filePath = decodeURIComponent(options.path || '').replace(/^\//, '') // remove leading slash
+    const isCached = this.cache.checkExistence(filePath)
+    if (!isCached) {
+      try {
+        await this.cache.download(filePath)
+      } catch (err) {
         reject(err)
-      }).pipe(concatStream(file => {
-        resolve(file)
-      }))
-    })
+        return
+      }
+    }
+    return this.cache.getFile(filePath)
   }
 }
 
