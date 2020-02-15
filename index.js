@@ -88,10 +88,12 @@ class OpenstackAdapter extends BaseAdapter {
           this.cache.downloadStream(filePath),
           this.cache.writeStream(filePath)
         ])
-        readStream.on('error', err => {
+        const toWriteStream = readStream.on('error', err => {
           res.status(404)
           next(err)
-        }).pipe(res).pipe(writeStream)
+        })
+        toWriteStream.pipe(res)
+        toWriteStream.pipe(writeStream)
       } catch (err) {
         res.status(404)
         next(err)
