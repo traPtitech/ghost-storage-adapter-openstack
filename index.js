@@ -83,19 +83,14 @@ class OpenstackAdapter extends BaseAdapter {
         return
       }
 
-      try {
-        const [readStream, writeStream] = await Promise.all([
-          this.cache.downloadStream(filePath),
-          this.cache.writeStream(filePath)
-        ])
-        readStream.on('error', err => {
-          res.status(404)
-          next(err)
-        }).pipe(res).pipe(writeStream)
-      } catch (err) {
+      const [readStream, writeStream] = await Promise.all([
+        this.cache.downloadStream(filePath),
+        this.cache.writeStream(filePath)
+      ])
+      readStream.on('error', err => {
         res.status(404)
         next(err)
-      }
+      }).pipe(res).pipe(writeStream)
     }
   }
 
