@@ -1,9 +1,5 @@
-const fs = require('fs')
+const fs = require('fs-extra')
 const path = require('path')
-const { promisify } = require('util')
-
-const readFile = promisify(fs.readFile)
-const unlink = promisify(fs.unlink)
 
 module.exports = class Cache {
   constructor (cacheFolder, client, containerName) {
@@ -18,7 +14,7 @@ module.exports = class Cache {
   }
 
   get(filePath) {
-    return readFile(this.getCachePath(filePath))
+    return fs.readFile(this.getCachePath(filePath))
   }
 
   checkExistence(filePath) {
@@ -30,7 +26,8 @@ module.exports = class Cache {
     }
   }
 
-  download(filePath) {
+  async download(filePath) {
+    await fs.ensureDir(this.folder)
     return new Promise((resolve, reject) => this.client.download({
       container: this.containerName,
       remote: filePath,
@@ -45,7 +42,7 @@ module.exports = class Cache {
   }
 
   delete(filePath) {
-    return unlink(this.getCachePath(filePath))
+    return fs.unlink(this.getCachePath(filePath))
   }
 
   getCachePath(filePath) {

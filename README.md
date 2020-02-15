@@ -24,7 +24,7 @@ cp -r ./node_modules/ghost-storage-adapter-openstack ./content/adapters/storage/
       "tenantId": "your-tenant-id",
       "container": "your-container-name",
       "serverUrl": "your-page-domain/content/images",
-      "cacheFolder": "path-to-cache-folder"
+      "cacheFolder": "absolute-path-to-cache-folder"
     }
   }
 }
