@@ -5,7 +5,7 @@ const { promisify } = require('util')
 const readFile = promisify(fs.readFile)
 const unlink = promisify(fs.unlink)
 
-export default class Cache {
+module.exports = class Cache {
   constructor (cacheFolder, client, containerName) {
     this.folder = cacheFolder
     this.client = client
