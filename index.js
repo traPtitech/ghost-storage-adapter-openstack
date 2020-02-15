@@ -123,8 +123,7 @@ class OpenstackAdapter extends BaseAdapter {
       try {
         await this.cache.download(filePath)
       } catch (err) {
-        reject(err)
-        return
+        return Promise.reject(err)
       }
     }
     return this.cache.getFile(filePath)
