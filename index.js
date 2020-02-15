@@ -126,7 +126,7 @@ class OpenstackAdapter extends BaseAdapter {
         return Promise.reject(err)
       }
     }
-    return this.cache.getFile(filePath)
+    return this.cache.get(filePath)
   }
 }
 
