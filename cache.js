@@ -27,11 +27,12 @@ module.exports = class Cache {
   }
 
   async download(filePath) {
-    await fs.ensureDir(this.folder)
+    const absoluteFilePath = this.getCachePath(filePath)
+    await fs.ensureDir(path.dirname(absoluteFilePath))
     return new Promise((resolve, reject) => this.client.download({
       container: this.containerName,
       remote: filePath,
-      local: this.getCachePath(filePath)
+      local: absoluteFilePath
     }, (err, result) => {
       if (err) {
         reject(err)
