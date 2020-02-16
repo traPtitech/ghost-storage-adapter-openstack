@@ -8,11 +8,6 @@ module.exports = class Cache {
     this.containerName = containerName
   }
 
-  // only use when file exists
-  getStream(filePath) {
-    return fs.createReadStream(this.getCachePath(filePath))
-  }
-
   get(filePath) {
     return fs.readFile(this.getCachePath(filePath))
   }

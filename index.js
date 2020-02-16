@@ -71,24 +71,22 @@ class OpenstackAdapter extends BaseAdapter {
 
   serve() {
     return async (req, res, next) => {
-      res.set('Cache-Control', 'public, max-age=864000')
-
       const filePath = decodeURIComponent(req.path).replace(/^\//, '') // remove leading slash
       const isCached = this.cache.checkExistence(filePath)
       if (!isCached) {
         try {
           await this.cache.download(filePath)
         } catch (err) {
-          res.status(404)
-          next(err)
+          res.sendStatus(404)
+          console.warn(err)
           return
         }
       }
 
-      this.cache.getStream(filePath).on('error', err => {
-        res.status(404)
-        next(err)
-      }).pipe(res)
+      res.sendFile(this.cache.getCachePath(filePath), {
+        maxAge: 864000,
+        immutable: true
+      })
     }
   }
 
