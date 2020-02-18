@@ -73,7 +73,7 @@ module.exports = class Cache {
       throw new Error('ghost-storage-adapter-openstack::cache.getCachePath cannot be called when original=true')
     }
     if (param.width !== null) {
-      return path.resolve(this.folder, 'resized', param.width, filePath)
+      return path.resolve(this.folder, 'resized', '' + param.width, filePath)
     }
     return path.resolve(this.folder, filePath)
   }
