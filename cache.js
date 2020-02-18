@@ -1,5 +1,10 @@
 const fs = require('fs-extra')
 const path = require('path')
+const sharp = require('sharp')
+const concatStream = require('concat-stream')
+const glob = require('fast-glob')
+
+const DEFAULT_MAX_WIDTH = 1024
 
 module.exports = class Cache {
   constructor (cacheFolder, client, containerName) {
@@ -8,40 +13,119 @@ module.exports = class Cache {
     this.containerName = containerName
   }
 
-  get(filePath) {
-    return fs.readFile(this.getCachePath(filePath))
+  getOriginal(filePath) {
+    return this.download(filePath)
   }
 
-  checkExistence(filePath) {
-    try {
-      const stats = fs.statSync(this.getCachePath(filePath))
-      return (stats.isFile() && stats.size > 0)
-    } catch (e) {
-      return false
+  ensure(filePath, rawParam) {
+    const param = this.parseParam(rawParam)
+    if (param.original) {
+      throw new Error('ghost-storage-adapter-openstack::cache.ensure cannot be called when original=true')
+    }
+    if (this.cacheExists(filePath, param)) {
+      return
+    }
+    this.createCache(filePath, param)
+  }
+
+  async delete(filePath) {
+    const files = glob(`${this.folder}/**${filePath}`)
+    const errs = []
+
+    await Promise.all(files.map(file => fs.unlink(file).catch(err => errs.push(err))))
+
+    if (errs.length > 0) {
+      throw errs
     }
   }
 
-  async download(filePath) {
-    const absoluteFilePath = this.getCachePath(filePath)
-    await fs.ensureDir(path.dirname(absoluteFilePath))
-    return new Promise((resolve, reject) => this.client.download({
-      container: this.containerName,
-      remote: filePath,
-      local: absoluteFilePath
-    }, (err, result) => {
-      if (err) {
-        reject(err)
-        return
+  isImageExt(filePath) {
+    const ext = path.extname(filePath).toLowerCase()
+    if (ext === 'png') return true
+    if (ext === 'jpg' || ext === 'jpeg' || ext === 'jpe' || ext === 'jfif') return true
+    if (ext === 'webp') return true
+    return false
+  }
+
+  parseParam(rawParam) {
+    const param = {
+      original: rawParam.original === 'true',
+      width: null
+    }
+    if (param.original) {
+      return param
+    }
+
+    if (rawParam.width !== undefined) {
+      const width = +rawParam.width
+      if (Number.isFinite(width) && width > 0) {
+        param.width = width
       }
-      resolve(result)
-    }))
+    }
+    return param
   }
 
-  delete(filePath) {
-    return fs.unlink(this.getCachePath(filePath))
-  }
-
-  getCachePath(filePath) {
+  getCachePath(filePath, param, isRawParam = false) {
+    if (isRawParam) {
+      param = this.parseParam(param)
+    }
+    if (param.original) {
+      throw new Error('ghost-storage-adapter-openstack::cache.getCachePath cannot be called when original=true')
+    }
+    if (param.width !== null) {
+      return path.resolve(this.folder, 'resized', param.width, filePath)
+    }
     return path.resolve(this.folder, filePath)
+  }
+
+  cacheExists(filePath, param) {
+    return fs.pathExists(this.getCachePath(filePath, param))
+  }
+
+  createCache(filePath, param) {
+    const cachePath = this.getCachePath(filePath, param)
+
+    return new Promise((resolve, reject) => {
+      const fileStream = this.getDownloadStream(filePath)
+      const outputStream = fs.createWriteStream(cachePath)
+
+      const width = param.width === null ? DEFAULT_MAX_WIDTH : param.width
+      const transformer =
+        sharp()
+          .resize({
+            fit: 'contain',
+            width
+          })
+
+      fileStream
+        .pipe(transformer)
+        .pipe(outputStream)
+        .on('error', err => {
+          reject(err)
+        })
+        .on('end', () => {
+          resolve()
+        })
+    })
+  }
+
+  getDownloadStream(filePath) {
+    return this.client.download({
+      container: this.containerName,
+      remote: filePath
+    })
+  }
+
+  async download(filePath) {
+    return new Promise((resolve, reject) => {
+      this.client.download({
+        container: this.containerName,
+        remote: filePath
+      }).on('error', err => {
+        reject(err)
+      }).pipe(concatStream(file => {
+        resolve(file)
+      }))
+    })
   }
 }

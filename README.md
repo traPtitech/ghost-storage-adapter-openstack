@@ -4,6 +4,8 @@ An openstack storage adapter for Ghost blogging platform.
 
 Using patched pkgcloud due to [#673](https://github.com/pkgcloud/pkgcloud/pull/673).
 
+Resizes images and caches it.
+
 ## Installation
 ```sh
 npm i traPtitech/ghost-storage-adapter-openstack

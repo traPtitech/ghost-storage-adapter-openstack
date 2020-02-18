@@ -72,18 +72,25 @@ class OpenstackAdapter extends BaseAdapter {
   serve() {
     return async (req, res, next) => {
       const filePath = decodeURIComponent(req.path).replace(/^\//, '') // remove leading slash
-      const isCached = this.cache.checkExistence(filePath)
-      if (!isCached) {
-        try {
-          await this.cache.download(filePath)
-        } catch (err) {
-          res.sendStatus(404)
-          console.warn(err)
-          return
-        }
+
+      if (!this.cache.isImageExt(filePath) || req.query.original === 'true') {
+        res.set('Cache-Control', 'public, max-age=864000, immutable')
+        this.cache.getOriginalStream(filePath).on('error', err => {
+          res.status(404)
+          next(err)
+        }).pipe(res)
+        return
       }
 
-      res.sendFile(this.cache.getCachePath(filePath), {
+      try {
+        await this.cache.ensure(filePath, req.query)
+      } catch (err) {
+        res.sendStatus(404)
+        console.warn(err)
+        return
+      }
+
+      res.sendFile(this.cache.getCachePath(filePath, req.query, true), {
         maxAge: 864000,
         immutable: true
       })
@@ -116,15 +123,12 @@ class OpenstackAdapter extends BaseAdapter {
 
   async read(options = {}) {
     const filePath = decodeURIComponent(options.path || '').replace(/^\//, '') // remove leading slash
-    const isCached = this.cache.checkExistence(filePath)
-    if (!isCached) {
-      try {
-        await this.cache.download(filePath)
-      } catch (err) {
-        return Promise.reject(err)
-      }
+    try {
+      const file = await this.cache.getOriginal(filePath)
+      return file
+    } catch (err) {
+      return Promise.reject(err)
     }
-    return this.cache.get(filePath)
   }
 }
 
