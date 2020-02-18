@@ -75,7 +75,7 @@ class OpenstackAdapter extends BaseAdapter {
 
       if (!this.cache.isImageExt(filePath) || req.query.original === 'true') {
         res.set('Cache-Control', 'public, max-age=864000, immutable')
-        this.cache.getOriginalStream(filePath).on('error', err => {
+        this.cache.getDownloadStream(filePath).on('error', err => {
           res.status(404)
           next(err)
         }).pipe(res)

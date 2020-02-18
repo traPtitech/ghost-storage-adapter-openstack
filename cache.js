@@ -41,9 +41,9 @@ module.exports = class Cache {
 
   isImageExt(filePath) {
     const ext = path.extname(filePath).toLowerCase()
-    if (ext === 'png') return true
-    if (ext === 'jpg' || ext === 'jpeg' || ext === 'jpe' || ext === 'jfif') return true
-    if (ext === 'webp') return true
+    if (ext === '.png') return true
+    if (ext === '.jpg' || ext === '.jpeg' || ext === '.jpe' || ext === '.jfif') return true
+    if (ext === '.webp') return true
     return false
   }
 
