@@ -87,7 +87,6 @@ module.exports = class Cache {
 
     return new Promise((resolve, reject) => {
       const fileStream = this.getDownloadStream(filePath)
-      const outputStream = fs.createWriteStream(cachePath)
 
       const width = param.width === null ? DEFAULT_MAX_WIDTH : param.width
       const transformer =
@@ -96,16 +95,15 @@ module.exports = class Cache {
             fit: 'contain',
             width
           })
+          .toFile(cachePath, (err, info) => {
+            if (err) {
+              reject(err)
+              return
+            }
+            resolve(info)
+          })
 
-      fileStream
-        .pipe(transformer)
-        .pipe(outputStream)
-        .on('error', err => {
-          reject(err)
-        })
-        .on('end', () => {
-          resolve()
-        })
+      fileStream.pipe(transformer)
     })
   }
 
