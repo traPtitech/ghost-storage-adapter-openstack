@@ -85,7 +85,7 @@ module.exports = class Cache {
   createCache(filePath, param) {
     const cachePath = this.getCachePath(filePath, param)
 
-    return new Promise((resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
       try {
         await fs.ensureDir(path.dirname(cachePath))
       } catch (err) {
