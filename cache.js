@@ -17,15 +17,15 @@ module.exports = class Cache {
     return this.download(filePath)
   }
 
-  ensure(filePath, rawParam) {
+  async ensure(filePath, rawParam) {
     const param = this.parseParam(rawParam)
     if (param.original) {
       throw new Error('ghost-storage-adapter-openstack::cache.ensure cannot be called when original=true')
     }
-    if (this.cacheExists(filePath, param)) {
+    if (await this.cacheExists(filePath, param)) {
       return
     }
-    this.createCache(filePath, param)
+    await this.createCache(filePath, param)
   }
 
   async delete(filePath) {
@@ -86,6 +86,13 @@ module.exports = class Cache {
     const cachePath = this.getCachePath(filePath, param)
 
     return new Promise((resolve, reject) => {
+      try {
+        await fs.ensureDir(path.dirname(cachePath))
+      } catch (err) {
+        reject(err)
+        return
+      }
+
       const fileStream = this.getDownloadStream(filePath)
 
       const width = param.width === null ? DEFAULT_MAX_WIDTH : param.width
@@ -93,7 +100,8 @@ module.exports = class Cache {
         sharp()
           .resize({
             fit: 'contain',
-            width
+            width,
+            withoutEnlargement: true
           })
           .toFile(cachePath, (err, info) => {
             if (err) {
