@@ -20,7 +20,7 @@ module.exports = class Cache {
   async ensure(filePath, rawParam) {
     const param = this.parseParam(rawParam)
     if (param.original) {
-      throw new Error('ghost-storage-adapter-openstack::cache.ensure cannot be called when original=true')
+      throw new Error('ghost-storage-adapter-openstack::cache.ensure cannot be called when original=1')
     }
     if (await this.cacheExists(filePath, param)) {
       return
@@ -49,7 +49,7 @@ module.exports = class Cache {
 
   parseParam(rawParam) {
     const param = {
-      original: rawParam.original === 'true',
+      original: rawParam.original === '1',
       width: null
     }
     if (param.original) {
@@ -70,7 +70,7 @@ module.exports = class Cache {
       param = this.parseParam(param)
     }
     if (param.original) {
-      throw new Error('ghost-storage-adapter-openstack::cache.getCachePath cannot be called when original=true')
+      throw new Error('ghost-storage-adapter-openstack::cache.getCachePath cannot be called when original=1')
     }
     if (param.width !== null) {
       return path.resolve(this.folder, 'resized', '' + param.width, filePath)
