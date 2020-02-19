@@ -119,6 +119,9 @@ module.exports = class Cache {
         fit: 'contain',
         width,
         withoutEnlargement: true
+      }).png({
+        adaptiveFiltering: true,
+        force: false
       })
       if (webp) {
         transformer.webp({
