@@ -30,9 +30,15 @@ module.exports = class Cache {
 
   async delete(filePath) {
     const files = glob(`${this.folder}/**${filePath}`)
+    const filesWebp = glob(`${this.folder}/webp/**${filePath}.webp`)
     const errs = []
 
-    await Promise.all(files.map(file => fs.unlink(file).catch(err => errs.push(err))))
+    await Promise.all(
+      files.concat(filesWebp)
+        .map(file =>
+          fs.unlink(file).catch(err => errs.push(err))
+        )
+    )
 
     if (errs.length > 0) {
       throw errs
@@ -50,11 +56,14 @@ module.exports = class Cache {
   parseParam(rawParam) {
     const param = {
       original: rawParam.original === '1',
-      width: null
+      width: null,
+      webp: null
     }
     if (param.original) {
       return param
     }
+
+    param.webp = rawParam.webp === '1'
 
     if (rawParam.width !== undefined) {
       const width = +rawParam.width
@@ -62,6 +71,7 @@ module.exports = class Cache {
         param.width = width
       }
     }
+
     return param
   }
 
@@ -71,6 +81,12 @@ module.exports = class Cache {
     }
     if (param.original) {
       throw new Error('ghost-storage-adapter-openstack::cache.getCachePath cannot be called when original=1')
+    }
+    if (param.webp) {
+      if (param.width !== null) {
+        return path.resolve(this.folder, 'webp', 'resized', '' + param.width, filePath + '.webp')
+      }
+      return path.resolve(this.folder, 'webp', filePath, '.webp')
     }
     if (param.width !== null) {
       return path.resolve(this.folder, 'resized', '' + param.width, filePath)
@@ -84,6 +100,7 @@ module.exports = class Cache {
 
   createCache(filePath, param) {
     const cachePath = this.getCachePath(filePath, param)
+    const ext = path.extname(filePath).toLowerCase()
 
     return new Promise(async (resolve, reject) => {
       try {
@@ -96,20 +113,25 @@ module.exports = class Cache {
       const fileStream = this.getDownloadStream(filePath)
 
       const width = param.width === null ? DEFAULT_MAX_WIDTH : param.width
-      const transformer =
-        sharp()
-          .resize({
-            fit: 'contain',
-            width,
-            withoutEnlargement: true
-          })
-          .toFile(cachePath, (err, info) => {
-            if (err) {
-              reject(err)
-              return
-            }
-            resolve(info)
-          })
+      const webp = param.webp
+
+      let transformer = sharp().resize({
+        fit: 'contain',
+        width,
+        withoutEnlargement: true
+      })
+      if (webp) {
+        transformer.webp({
+          nearLossless: ext === '.png'
+        })
+      }
+      transformer.toFile(cachePath, (err, info) => {
+        if (err) {
+          reject(err)
+          return
+        }
+        resolve(info)
+      })
 
       fileStream.pipe(transformer)
     })
