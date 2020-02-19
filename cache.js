@@ -122,7 +122,7 @@ module.exports = class Cache {
     })
   }
 
-  async download(filePath) {
+  download(filePath) {
     return new Promise((resolve, reject) => {
       this.client.download({
         container: this.containerName,
