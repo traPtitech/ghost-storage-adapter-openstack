@@ -82,15 +82,17 @@ class OpenstackAdapter extends BaseAdapter {
         return
       }
 
+      const baseFilePath = filePath.replace(/\.(.+)\.webp$/, '.$1')
+
       try {
-        await this.cache.ensure(filePath, req.query)
+        await this.cache.ensure(baseFilePath, req.query)
       } catch (err) {
         res.sendStatus(404)
         console.warn(err)
         return
       }
 
-      res.sendFile(this.cache.getCachePath(filePath, req.query, true), {
+      res.sendFile(this.cache.getCachePath(baseFilePath, req.query, true), {
         maxAge: 864000,
         immutable: true
       })

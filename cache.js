@@ -86,7 +86,7 @@ module.exports = class Cache {
       if (param.width !== null) {
         return path.resolve(this.folder, 'webp', 'resized', '' + param.width, filePath + '.webp')
       }
-      return path.resolve(this.folder, 'webp', filePath, '.webp')
+      return path.resolve(this.folder, 'webp', filePath + '.webp')
     }
     if (param.width !== null) {
       return path.resolve(this.folder, 'resized', '' + param.width, filePath)
