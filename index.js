@@ -92,7 +92,7 @@ class OpenstackAdapter extends BaseAdapter {
       }
 
       res.sendFile(this.cache.getCachePath(baseFilePath, req.query, true), {
-        maxAge: 864000,
+        maxAge: 864000 * 1000,
         immutable: true
       })
     }
