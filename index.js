@@ -2,7 +2,11 @@ const BaseAdapter = require('ghost-storage-base')
 const pkgcloud = require('pkgcloud')
 const { join } = require('path')
 const { createReadStream } = require('fs')
+const stream = require('stream')
+const { promisify } = require('util')
 const Cache = require('./cache')
+
+const pipeline = promisify(stream.pipeline)
 
 class OpenstackAdapter extends BaseAdapter {
   constructor(config = {}) {
@@ -38,35 +42,22 @@ class OpenstackAdapter extends BaseAdapter {
     })
   }
 
-  save(image, directory) {
-    return new Promise(async (resolve, reject) => {
-      try {
-        if (!directory) {
-          directory = this.getTargetDir()
-        }
+  async save(image, directory) {
+    if (!directory) {
+      directory = this.getTargetDir()
+    }
 
-        image.name = image.name.toLowerCase()
-        const fileName = await this.getUniqueFileName(image, directory)
-        const readStream = createReadStream(image.path)
+    image.name = image.name.toLowerCase()
+    const fileName = await this.getUniqueFileName(image, directory)
+    const readStream = createReadStream(image.path)
 
-        const writeStream = this.client.upload({
-          container: this.containerName,
-          remote: fileName
-        })
-        writeStream.on('error', err => {
-          reject(err)
-        })
-        writeStream.on('success', file => {
-          resolve(`${this.serverUrl}/${fileName}`)
-        })
-        readStream.pipe(writeStream)
-        readStream.on('error', err => {
-          writeStream.destroy(err)
-        })
-      } catch(e) {
-        reject(e)
-      }
+    const writeStream = this.client.upload({
+      container: this.containerName,
+      remote: fileName
     })
+
+    await pipeline(readStream, writeStream)
+    return `${this.serverUrl}/${fileName}`
   }
 
   serve() {
@@ -76,10 +67,12 @@ class OpenstackAdapter extends BaseAdapter {
 
       if (!this.cache.isImageExt(baseFilePath) || req.query.original === '1') {
         res.set('Cache-Control', 'public, max-age=864000, immutable')
-        this.cache.getDownloadStream(baseFilePath).on('error', err => {
+
+        const readStream = this.cache.getDownloadStream(baseFilePath)
+        pipeline(readStream, res, err => {
           res.status(404)
           next(err)
-        }).pipe(res)
+        })
         return
       }
 

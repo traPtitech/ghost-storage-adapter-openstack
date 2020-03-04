@@ -1,8 +1,12 @@
 const fs = require('fs-extra')
 const path = require('path')
+const stream = require('stream')
+const { promisify } = require('util')
 const sharp = require('sharp')
 const concatStream = require('concat-stream')
 const glob = require('fast-glob')
+
+const pipeline = promisify(stream.pipeline)
 
 const DEFAULT_MAX_WIDTH = 1024
 
@@ -147,16 +151,16 @@ module.exports = class Cache {
     })
   }
 
-  download(filePath) {
-    return new Promise((resolve, reject) => {
-      this.client.download({
-        container: this.containerName,
-        remote: filePath
-      }).on('error', err => {
-        reject(err)
-      }).pipe(concatStream(file => {
-        resolve(file)
-      }))
+  async download(filePath) {
+    const readStream = this.client.download({
+      container: this.containerName,
+      remote: filePath
     })
+
+    const writeStream = concatStream(file => {
+      resolve(file)
+    })
+
+    return pipeline(readStream, writeStream)
   }
 }
