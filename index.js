@@ -69,10 +69,12 @@ class OpenstackAdapter extends BaseAdapter {
         res.set('Cache-Control', 'public, max-age=864000, immutable')
 
         const readStream = this.cache.getDownloadStream(baseFilePath)
-        pipeline(readStream, res, err => {
+        try {
+          await pipeline(readStream, res)
+        } catch (err) {
           res.status(404)
           next(err)
-        })
+        }
         return
       }
 
