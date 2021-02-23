@@ -63,7 +63,7 @@ class OpenstackAdapter extends BaseAdapter {
   serve() {
     return async (req, res, next) => {
       const filePath = decodeURIComponent(req.path).replace(/^\//, '') // remove leading slash
-      const baseFilePath = filePath.replace(/\.(.+)\.webp$/, '.$1')
+      const baseFilePath = filePath.replace(/\.(.+)\.(?:webp|avif)$/, '.$1')
 
       if (!this.cache.isImageExt(baseFilePath) || req.query.original === '1') {
         res.set('Cache-Control', 'public, max-age=864000, immutable')
