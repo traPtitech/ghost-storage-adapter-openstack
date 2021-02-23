@@ -28,6 +28,9 @@ cp -r ./node_modules/ghost-storage-adapter-openstack ./content/adapters/storage/
       "serverUrl": "your-page-domain/content/images",
       "cacheFolder": "absolute-path-to-cache-folder"
     }
+  },
+  "imageOptimization": {
+    "resize": false
   }
 }
 ```
