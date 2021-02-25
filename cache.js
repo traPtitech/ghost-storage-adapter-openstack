@@ -6,6 +6,8 @@ const glob = require('fast-glob')
 
 const DEFAULT_MAX_WIDTH = 1024
 
+sharp.cache(false)
+
 module.exports = class Cache {
   constructor (cacheFolder, client, containerName) {
     this.folder = cacheFolder
@@ -115,7 +117,7 @@ module.exports = class Cache {
       const width = param.width === null ? DEFAULT_MAX_WIDTH : param.width
       const webp = param.webp
 
-      let transformer = sharp().resize({
+      let transformer = sharp({ sequentialRead: true }).resize({
         fit: 'contain',
         width,
         withoutEnlargement: true
