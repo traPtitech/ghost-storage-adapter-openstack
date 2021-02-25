@@ -88,7 +88,7 @@ module.exports = class Cache {
     }
     if (param.avif) {
       if (param.width !== null) {
-          return path.resolve(this.folder, 'avif', 'resized', '' + param.width, filePath + '.avif')
+        return path.resolve(this.folder, 'avif', 'resized', '' + param.width, filePath + '.avif')
       }
       return path.resolve(this.folder, 'avif', filePath + '.avif')
     }

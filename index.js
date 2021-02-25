@@ -88,7 +88,7 @@ class OpenstackAdapter extends BaseAdapter {
         await this.cache.ensure(baseFilePath, req.query)
       } catch (err) {
         res.sendStatus(404)
-        console.warn(err)
+        console.warn("ghost-storage-adapter-openstack: Error occured when serving. ", err)
         return
       }
 
