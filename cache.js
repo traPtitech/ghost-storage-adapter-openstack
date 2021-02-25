@@ -117,14 +117,16 @@ module.exports = class Cache {
       const width = param.width === null ? DEFAULT_MAX_WIDTH : param.width
       const webp = param.webp
 
-      let transformer = sharp({ sequentialRead: true }).resize({
-        fit: 'contain',
-        width,
-        withoutEnlargement: true
-      }).png({
-        adaptiveFiltering: true,
-        force: false
-      }).rotate()
+      const transformer = sharp({ sequentialRead: true })
+        .rotate().flip()
+        .resize({
+          fit: 'contain',
+          width,
+          withoutEnlargement: true
+        }).png({
+          adaptiveFiltering: true,
+          force: false
+        })
       if (webp) {
         transformer.webp({
           nearLossless: ext === '.png'
