@@ -31,11 +31,10 @@ module.exports = class Cache {
   async delete(filePath) {
     const files = glob(`${this.folder}/**${filePath}`)
     const filesWebp = glob(`${this.folder}/webp/**${filePath}.webp`)
-    const filesAvif = glob(`${this.folder}/avif/**${filePath}.avif`)
     const errs = []
 
     await Promise.all(
-      files.concat(filesWebp, filesAvif)
+      files.concat(filesWebp)
         .map(file =>
           fs.unlink(file).catch(err => errs.push(err))
         )
@@ -51,7 +50,6 @@ module.exports = class Cache {
     if (ext === '.png') return true
     if (ext === '.jpg' || ext === '.jpeg' || ext === '.jpe' || ext === '.jfif') return true
     if (ext === '.webp') return true
-    if (ext === '.avif') return true
     return false
   }
 
@@ -59,15 +57,13 @@ module.exports = class Cache {
     const param = {
       original: rawParam.original === '1',
       width: null,
-      webp: null,
-      avif: null
+      webp: null
     }
     if (param.original) {
       return param
     }
 
-    param.avif = rawParam.avif === '1'
-    param.webp = rawParam.avif !== '1' && rawParam.webp === '1'
+    param.webp = rawParam.webp === '1'
 
     if (rawParam.width !== undefined) {
       const width = +rawParam.width
@@ -85,12 +81,6 @@ module.exports = class Cache {
     }
     if (param.original) {
       throw new Error('ghost-storage-adapter-openstack::cache.getCachePath cannot be called when original=1')
-    }
-    if (param.avif) {
-      if (param.width !== null) {
-        return path.resolve(this.folder, 'avif', 'resized', '' + param.width, filePath + '.avif')
-      }
-      return path.resolve(this.folder, 'avif', filePath + '.avif')
     }
     if (param.webp) {
       if (param.width !== null) {
@@ -123,7 +113,6 @@ module.exports = class Cache {
       const fileStream = this.getDownloadStream(filePath)
 
       const width = param.width === null ? DEFAULT_MAX_WIDTH : param.width
-      const avif = param.avif
       const webp = param.webp
 
       let transformer = sharp().resize({
@@ -133,12 +122,7 @@ module.exports = class Cache {
       }).png({
         adaptiveFiltering: true,
         force: false
-      }).rotate()
-      if (avif) {
-        transformer.avif({
-          lossless: ext === '.png'
-        })
-      }
+      })
       if (webp) {
         transformer.webp({
           nearLossless: ext === '.png'
