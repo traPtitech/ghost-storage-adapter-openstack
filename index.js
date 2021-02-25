@@ -14,6 +14,7 @@ class OpenstackAdapter extends BaseAdapter {
 
     this.containerName = config.container
     this.serverUrl = config.serverUrl
+
     this.client = pkgcloud.storage.createClient({
       provider: 'openstack',
       username: config.username,
@@ -23,6 +24,11 @@ class OpenstackAdapter extends BaseAdapter {
       tenantId: config.tenantId,
       container: config.container
     })
+    // https://github.com/lovell/sharp/issues/930
+    this.client.before.push(function (req) {
+      req.encoding = null
+    })
+
     this.cache = new Cache(config.cacheFolder, this.client, this.containerName)
   }
 
