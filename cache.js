@@ -122,7 +122,7 @@ module.exports = class Cache {
       }).png({
         adaptiveFiltering: true,
         force: false
-      })
+      }).rotate()
       if (webp) {
         transformer.webp({
           nearLossless: ext === '.png'
