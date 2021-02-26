@@ -118,6 +118,7 @@ module.exports = class Cache {
       const webp = param.webp
 
       const transformer = sharp({ sequentialRead: true })
+        .rotate()
         .resize({
           fit: 'contain',
           width,
