@@ -28,6 +28,6 @@
     "fs-extra": "^9.1.0",
     "ghost-storage-base": "0.0.5",
     "pkgcloud": "github:louis-sanna/pkgcloud#09278bb7eb7c50dbb2b2eb196664f0d58b29adb6",
-    "sharp": "^0.25.4"
+    "sharp": "^0.29.0"
   }
 }
