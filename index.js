@@ -1,45 +1,45 @@
 const BaseAdapter = require('ghost-storage-base')
-const pkgcloud = require('pkgcloud')
 const { join } = require('path')
 const { createReadStream } = require('fs')
 const stream = require('stream')
 const { promisify } = require('util')
 const Cache = require('./cache')
+const { S3Client, HeadObjectCommand, PutObjectCommand, DeleteObjectCommand } = require('@aws-sdk/client-s3')
 
 const pipeline = promisify(stream.pipeline)
 
-class OpenstackAdapter extends BaseAdapter {
+class S3Adapter extends BaseAdapter {
   constructor(config = {}) {
     super(config)
 
-    this.containerName = config.container
+    this.bucketName = config.bucket
     this.serverUrl = config.serverUrl
-    this.client = pkgcloud.storage.createClient({
-      provider: 'openstack',
-      username: config.username,
-      password: config.password,
-      authUrl: config.authUrl,
+    this.client = new S3Client({
       region: config.region,
-      tenantId: config.tenantId,
-      container: config.container
+      endpoint: config.endpoint,
+      credentials: {
+        accessKeyId: config.accessKeyId,
+        secretAccessKey: config.secretAccessKey
+      }
     })
     this.cache = new Cache(config.cacheFolder, this.client, this.containerName)
   }
 
-  exists(filename, directory) {
-    return new Promise(resolve => {
-      if (!directory) {
-        directory = this.getTargetDir()
-      }
-
-      this.client.getFile(this.containerName, join(directory, filename), (err, file) => {
-        if (err) {
-          resolve(false)
-          return
-        }
-        resolve(true)
-      })
-    })
+  async exists(filename, directory) {
+    if (!directory) {
+      directory = this.getTargetDir()
+    }
+    try {
+      await this.client.send(
+        new HeadObjectCommand({
+          Bucket: this.bucketName,
+          Key: join(directory, filename)
+        })
+      )
+      return true
+    } catch (err) {
+      return false
+    }
   }
 
   async save(image, directory) {
@@ -51,12 +51,13 @@ class OpenstackAdapter extends BaseAdapter {
     const fileName = await this.getUniqueFileName(image, directory)
     const readStream = createReadStream(image.path)
 
-    const writeStream = this.client.upload({
-      container: this.containerName,
-      remote: fileName
-    })
-
-    await pipeline(readStream, writeStream)
+    await this.client.send(
+      new PutObjectCommand({
+        Bucket: this.bucketName,
+        Key: fileName,
+        Body: readStream
+      })
+    )
     return `${this.serverUrl}/${fileName}`
   }
 
@@ -102,15 +103,12 @@ class OpenstackAdapter extends BaseAdapter {
       const filePath = join(directory, filename)
       await this.cache.delete(filePath)
 
-      await new Promise((resolve, reject) => {
-        this.client.removeFile(this.containerName, filePath, err => {
-          if (err) {
-            reject(err)
-            return
-          }
-          resolve()
+      await this.client.send(
+        new DeleteObjectCommand({
+          Bucket: this.bucketName,
+          Key: filePath
         })
-      })
+      )
       return true
     } catch (err) {
       return false
@@ -128,4 +126,4 @@ class OpenstackAdapter extends BaseAdapter {
   }
 }
 
-module.exports = OpenstackAdapter
+module.exports = S3Adapter
