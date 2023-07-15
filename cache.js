@@ -3,16 +3,17 @@ const path = require('path')
 const sharp = require('sharp')
 const concatStream = require('concat-stream')
 const glob = require('fast-glob')
+const { GetObjectCommand } = require('@aws-sdk/client-s3')
 
 const DEFAULT_MAX_WIDTH = 1024
 
 sharp.cache(false)
 
 module.exports = class Cache {
-  constructor (cacheFolder, client, containerName) {
+  constructor(cacheFolder, client, bucketName) {
     this.folder = cacheFolder
     this.client = client
-    this.containerName = containerName
+    this.bucketName = bucketName
   }
 
   getOriginal(filePath) {
@@ -112,7 +113,7 @@ module.exports = class Cache {
         return
       }
 
-      const fileStream = this.getDownloadStream(filePath)
+      const fileStream = await this.getDownloadStream(filePath)
 
       const width = param.width === null ? DEFAULT_MAX_WIDTH : param.width
       const webp = param.webp
@@ -144,21 +145,29 @@ module.exports = class Cache {
     })
   }
 
-  getDownloadStream(filePath) {
-    return this.client.download({
-      container: this.containerName,
-      remote: filePath
-    })
+  async getDownloadStream(filePath) {
+    const output = await this.client.send(
+      new GetObjectCommand({
+        Bucket: this.bucketName,
+        Key: filePath
+      })
+    )
+
+    return output.Body
   }
 
   download(filePath) {
     return new Promise((resolve, reject) => {
-      this.client.download({
-        container: this.containerName,
-        remote: filePath
-      }).on('error', err => {
+      const stream = this.client.send(
+        new GetObjectCommand({
+          Bucket: this.bucketName,
+          Key: filePath
+        })
+      )
+      stream.on('error', err => {
         reject(err)
-      }).pipe(concatStream(file => {
+      })
+      stream.pipe(concatStream(file => {
         resolve(file)
       }))
     })

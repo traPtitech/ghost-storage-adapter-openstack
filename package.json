@@ -1,7 +1,7 @@
 {
-  "name": "ghost-storage-adapter-openstack",
+  "name": "ghost-storage-adapter",
   "version": "1.0.0",
-  "description": "An openstack storage adapter for Ghost blogging platform.",
+  "description": "An adapter for Ghost blogging platform.",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -23,11 +23,11 @@
   },
   "homepage": "https://github.com/traPtitech/ghost-storage-adapter-openstack#readme",
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.370.0",
     "concat-stream": "^2.0.0",
     "fast-glob": "^3.2.5",
     "fs-extra": "^9.1.0",
     "ghost-storage-base": "0.0.5",
-    "pkgcloud": "github:louis-sanna/pkgcloud#09278bb7eb7c50dbb2b2eb196664f0d58b29adb6",
     "sharp": "^0.25.4"
   }
 }
